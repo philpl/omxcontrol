@@ -13,7 +13,7 @@ omx.stop = function(cb) {
         return;
     }
     console.info('killing omxplayer..');
-    exec('rm -f'+pipe, function (error, stdout, stderr) {
+    exec('rm -f '+pipe, function (error, stdout, stderr) {
         if (error !== null) console.error('rm exec error: ' + error);
         pipe = false;
         exec('killall omxplayer.bin', cb);
