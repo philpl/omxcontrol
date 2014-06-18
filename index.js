@@ -9,12 +9,33 @@ function omx(mapper) {
     map = mapper;
 }
 
+omx.stop = function(cb) {
+    if (!pipe) {
+        cb();
+        return;
+    }
+    console.log('killing omxplayer..');
+    exec('rm '+pipe, function () {
+        pipe = false;
+        exec('killall omxplayer.bin', cb);
+    });
+};
+
 omx.start = function(fn) {
     if (!pipe) {
         pipe = 'omxcontrol';
         exec('mkfifo '+pipe);
+    } else {
+        console.log("Pipe already exists! Restarting...");
+        omx.stop(function () {
+            return omx.start(fn);
+        });
     }
-    cb(fn);
+    if (map) {
+        map(fn,cb);
+    } else {
+        cb(fn);
+    }
 
     function cb(fn) {
         console.log(fn);
