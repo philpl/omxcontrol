@@ -1,9 +1,7 @@
 var exec = require('child_process').exec;
-var parseurl = require('url');
 
 var pipe = false;
 var map = false;
-var DEFAULT_PATH = '/omx';
 
 function omx(mapper) {
     map = mapper;
@@ -14,8 +12,9 @@ omx.stop = function(cb) {
         cb();
         return;
     }
-    console.log('killing omxplayer..');
-    exec('rm '+pipe, function () {
+    console.info('killing omxplayer..');
+    exec('rm -f'+pipe, function (error, stdout, stderr) {
+        if (error !== null) console.error('rm exec error: ' + error);
         pipe = false;
         exec('killall omxplayer.bin', cb);
     });
@@ -23,26 +22,39 @@ omx.stop = function(cb) {
 
 omx.start = function(fn) {
     if (!pipe) {
-        pipe = 'omxcontrol';
-        exec('mkfifo '+pipe);
+        pipe = '/tmp/omxcontrol';
+        exec('rm -f '+pipe, function (error, stdout, stderr) {
+            if (error !== null) {
+                console.error('rm exec error: ' + error);
+            } else {
+                exec('mkfifo '+pipe, function (error, stdout, stderr) {
+                    if (error !== null) {
+                        console.error('mkfifo exec error: ' + error);
+                    } else {
+                        if (map) {
+                            map(fn,cb);
+                        } else {
+                            cb(fn);
+                        }
+                    }
+                });
+            }
+        });
     } else {
-        console.log("Pipe already exists! Restarting...");
+        console.info("Pipe already exists! Restarting...");
         omx.stop(function () {
             return omx.start(fn);
         });
     }
-    if (map) {
-        map(fn,cb);
-    } else {
-        cb(fn);
-    }
 
     function cb(fn) {
-        console.log(fn);
-        exec('omxplayer -o hdmi "'+fn+'" < '+pipe,function(error, stdout, stderr) {
-            console.log(stdout);
+        console.info(fn);
+        exec('omxplayer -o hdmi "'+fn+'" < '+pipe, function (error, stdout, stderr) {
+            if (error !== null) {
+              console.error('omxplayer exec error: ' + error);
+            }
         });
-        exec('echo . > '+pipe);
+        omx.sendKey('.') // play
     }
 };
 
@@ -64,8 +76,7 @@ omx.mapKey('volume_up', '+');
 omx.mapKey('volume_down', '-');
 omx.mapKey('pause','p');
 omx.mapKey('quit','q',function() {
-    exec('rm '+pipe);
-    pipe = false;
+    omx.stop();
 });
 omx.mapKey('play','.');
 omx.mapKey('forward',"\x5b\x43");
