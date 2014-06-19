@@ -81,6 +81,13 @@ omx.mapKey('quit','q',function() {
 omx.mapKey('play','.');
 omx.mapKey('forward',"\x5b\x43");
 omx.mapKey('backward',"\x5b\x44");
-omx.mapKey('subs', 'm');
+omx.mapKey('next_subtitle', 'm');
+omx.mapKey('previous_subtitle', 'n');
+omx.mapKey('next_chapter', 'o');
+omx.mapKey('previous_chapter', 'i');
+omx.mapKey('next_audio', 'k');
+omx.mapKey('previous_audio', 'j');
+omx.mapKey('increase_speed', '1');
+omx.mapKey('decrease_speed', '2');
 
 module.exports = omx;
