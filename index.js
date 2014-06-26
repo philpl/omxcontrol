@@ -1,11 +1,16 @@
 var exec = require('child_process').exec;
+var events = require('events');
+var util = require('util');
 
 var pipe = false;
 var map = false;
 
-function omx(mapper) {
+var omx = function (mapper) {
     map = mapper;
+    events.EventEmitter.call(this);
 }
+
+util.inherits(omx, events.EventEmitter);
 
 omx.stop = function(cb) {
     if (!pipe) {
@@ -16,7 +21,10 @@ omx.stop = function(cb) {
     exec('rm -f '+pipe, function (error, stdout, stderr) {
         if (error !== null) console.error('rm exec error: ' + error);
         pipe = false;
-        exec('killall omxplayer.bin', cb);
+        exec('killall omxplayer.bin', function () {
+            this.emit('stop');
+            cb();
+        });
     });
 };
 
@@ -52,9 +60,13 @@ omx.start = function(fn) {
         exec('omxplayer -o hdmi "'+fn+'" < '+pipe, function (error, stdout, stderr) {
             if (error !== null) {
               console.error('omxplayer exec error: ' + error);
+              this.emit('stop', error);
+            } else {
+              this.emit('complete');
             }
         });
         omx.sendKey('.') // play
+        this.emit('start', fn);
     }
 };
 
@@ -66,9 +78,8 @@ omx.sendKey = function(key) {
 omx.mapKey = function(command,key,then) {
     omx[command] = function() {
         omx.sendKey(key);
-        if (then) {
-            then();
-        }
+        if (then) then();
+        this.emit(command);
     };
 };
 
