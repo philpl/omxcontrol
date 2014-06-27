@@ -4,26 +4,26 @@ var util = require('util');
 
 var pipe = false;
 var map = false;
+var emitter = new events.EventEmitter();
 
 var omx = function (mapper) {
     map = mapper;
-    events.EventEmitter.call(this);
-}
+    //events.EventEmitter.call(this);
+};
 
-util.inherits(omx, events.EventEmitter);
+//util.inherits(omx, events.EventEmitter);
 
 omx.stop = function(cb) {
     if (!pipe) {
-        cb();
-        return;
+        if (cb) return cb();
     }
     console.info('killing omxplayer..');
     exec('rm -f '+pipe, function (error, stdout, stderr) {
         if (error !== null) console.error('rm exec error: ' + error);
         pipe = false;
         exec('killall omxplayer.bin', function () {
-            this.emit('stop');
-            cb();
+            emitter.emit('stop');
+            if (cb) return cb();
         });
     });
 };
@@ -60,13 +60,13 @@ omx.start = function(fn) {
         exec('omxplayer -o hdmi "'+fn+'" < '+pipe, function (error, stdout, stderr) {
             if (error !== null) {
               console.error('omxplayer exec error: ' + error);
-              this.emit('stop', error);
+              emitter.emit('stop', error);
             } else {
-              this.emit('complete');
+              emitter.emit('complete');
             }
         });
         omx.sendKey('.') // play
-        this.emit('start', fn);
+        emitter.emit('start', fn);
     }
 };
 
@@ -79,7 +79,7 @@ omx.mapKey = function(command,key,then) {
     omx[command] = function() {
         omx.sendKey(key);
         if (then) then();
-        this.emit(command);
+        emitter.emit(command);
     };
 };
 
@@ -101,4 +101,7 @@ omx.mapKey('previous_audio', 'j');
 omx.mapKey('increase_speed', '1');
 omx.mapKey('decrease_speed', '2');
 
-module.exports = omx;
+module.exports = {
+    player: omx,
+    emitter: emitter
+};
