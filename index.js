@@ -86,6 +86,7 @@ omx.mapKey = function(command,key,then) {
 omx.mapKey('volume_up', '+');
 omx.mapKey('volume_down', '-');
 omx.mapKey('pause','p');
+omx.mapKey('resume','p');
 omx.mapKey('quit','q',function() {
     omx.stop();
 });
