@@ -61,7 +61,7 @@ omx.start = function(fn) {
         if (fn.subtitle != null) {
             insert = ' --subtitles "' + fn.subtitle + '"';
         }
-        exec('omxplayer -o hdmi' + insert + ' "' + fn.input + '" < ' + pipe, function (error, stdout, stderr) {
+        exec('omxplayer -o hdmi --blank' + insert + ' "' + fn.input + '" < ' + pipe, function (error, stdout, stderr) {
             if (error !== null) {
               console.error('omxplayer exec error: ' + error);
               emitter.emit('stop', error);
