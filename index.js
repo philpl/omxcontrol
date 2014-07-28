@@ -59,9 +59,9 @@ omx.start = function(fn) {
         console.info(fn);
         var insert = '';
         if (fn.subtitle != null) {
-            insert = ' "' + fn.subtitle + '"';
+            insert = ' --subtitles "' + fn.subtitle + '"';
         }
-        exec('omxplayer -o hdmi --subtitles' + insert + ' "' + fn.input + '" < ' + pipe, function (error, stdout, stderr) {
+        exec('omxplayer -o hdmi' + insert + ' "' + fn.input + '" < ' + pipe, function (error, stdout, stderr) {
             if (error !== null) {
               console.error('omxplayer exec error: ' + error);
               emitter.emit('stop', error);
